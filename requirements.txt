@@ -24,3 +24,7 @@ rich
 questionary
 langchain_anthropic
 langchain-google-genai
+markdown2>=2.4.0
+pdfkit>=1.0.0
+weasyprint>=60.0
+reportlab>=4.0.0

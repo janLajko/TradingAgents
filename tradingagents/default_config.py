@@ -19,4 +19,7 @@ DEFAULT_CONFIG = {
     "max_recur_limit": 100,
     # Tool settings
     "online_tools": True,
+    "language": "zh-CN",  # 添加语言配置
+    "output_format": "pdf",  # 添加输出格式
+    "report_style": "chinese"  # 添加报告样式
 }

@@ -33,6 +33,117 @@ app = typer.Typer(
     add_completion=True,  # Enable shell completion
 )
 
+def convert_reports_to_pdf(ticker, analysis_date, report_dir, message_buffer):
+    """将CLI生成的markdown报告转换为PDF"""
+    try:
+        from tradingagents.agents.utils.pdfgenerator import PDFReportGenerator
+        
+        # PDF输出目录
+        pdf_dir = report_dir.parent / "pdf_reports"
+        pdf_gen = PDFReportGenerator(output_dir=str(pdf_dir))
+        
+        # 英文到中文的映射
+        chinese_mapping = {
+            "final_trade_decision.md": "最终交易决策",
+            "fundamentals_report.md": "基本面分析报告",
+            "investment_plan.md": "综合投资计划", 
+            "market_report.md": "市场技术分析报告",
+            "news_report.md": "新闻分析报告",
+            "sentiment_report.md": "情绪分析报告",
+            "trader_investment_plan.md": "交易员投资计划"
+        }
+        
+        # 添加消息到界面
+        message_buffer.add_message("System", "开始生成PDF报告...")
+        
+        all_reports = {}
+        success_count = 0
+        
+        # 转换每个markdown文件
+        for md_file in report_dir.glob("*.md"):
+            try:
+                # 读取内容
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                if not content.strip():
+                    continue
+                
+                # 获取中文名称
+                chinese_name = chinese_mapping.get(md_file.name, md_file.stem)
+                
+                # 生成PDF
+                filename = f"{ticker}_{analysis_date}_{chinese_name}"
+                pdf_path = pdf_gen.generate_pdf(content, filename, f"{ticker} {chinese_name}")
+                
+                if pdf_path:
+                    success_count += 1
+                    all_reports[chinese_name] = content
+                    message_buffer.add_message("System", f"✅ 已生成: {pdf_path.name}")
+                
+            except Exception as e:
+                message_buffer.add_message("System", f"❌ 处理 {md_file.name} 失败: {e}")
+        
+        # 生成综合报告
+        if all_reports:
+            combined_content = create_combined_report_for_cli(ticker, analysis_date, all_reports)
+            combined_filename = f"{ticker}_{analysis_date}_综合交易分析报告"
+            combined_pdf = pdf_gen.generate_pdf(combined_content, combined_filename, f"{ticker} 综合交易分析报告")
+            
+            if combined_pdf:
+                success_count += 1
+                message_buffer.add_message("System", f"✅ 综合报告: {combined_pdf.name}")
+        
+        message_buffer.add_message("System", f"🎉 PDF转换完成！共生成 {success_count} 个PDF文件")
+        message_buffer.add_message("System", f"📁 输出目录: {pdf_dir}")
+        
+    except ImportError as e:
+        message_buffer.add_message("System", f"❌ PDF生成器导入失败: {str(e)}")
+    except Exception as e:
+        message_buffer.add_message("System", f"❌ PDF转换失败: {str(e)}")
+
+def create_combined_report_for_cli(ticker, analysis_date, reports):
+    """为CLI创建综合报告"""
+    import datetime
+    
+    combined_content = f"""# {ticker} 综合交易分析报告
+
+**分析日期**: {analysis_date}
+**股票代码**: {ticker}
+**报告生成时间**: {datetime.datetime.now().strftime('%Y年%m月%d日 %H:%M:%S')}
+
+---
+
+## 执行摘要
+
+本报告基于多智能体协作分析框架，从基本面、技术面、情绪面、新闻面和风险管理等多个维度对{ticker}进行全面分析。
+
+---
+"""
+    
+    # 按逻辑顺序排列报告
+    report_order = [
+        "基本面分析报告",
+        "市场技术分析报告",
+        "新闻分析报告", 
+        "情绪分析报告",
+        "交易员投资计划",
+        "综合投资计划",
+        "最终交易决策"
+    ]
+    
+    # 添加按顺序的报告
+    for report_name in report_order:
+        if report_name in reports:
+            combined_content += f"\n## {report_name}\n\n{reports[report_name]}\n\n---\n"
+    
+    # 添加其他报告
+    for report_name, content in reports.items():
+        if report_name not in report_order:
+            combined_content += f"\n## {report_name}\n\n{content}\n\n---\n"
+    
+    return combined_content
+
 
 # Create a deque to store recent messages with a maximum length
 class MessageBuffer:
@@ -1092,7 +1203,12 @@ def run_analysis():
 
         # Display the complete final report
         display_complete_report(final_state)
-
+        convert_reports_to_pdf(
+            selections["ticker"], 
+            selections["analysis_date"], 
+            report_dir,  # CLI已经创建的报告目录
+            message_buffer
+        )
         update_display(layout)
 
 
