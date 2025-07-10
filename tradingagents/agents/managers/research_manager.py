@@ -29,6 +29,7 @@ Your Recommendation: A decisive stance supported by the most convincing argument
 Rationale: An explanation of why these arguments lead to your conclusion.
 Strategic Actions: Concrete steps for implementing the recommendation.
 Take into account your past mistakes on similar situations. Use these insights to refine your decision-making and ensure you are learning and improving. Present your analysis conversationally, as if speaking naturally, without special formatting. 
+**IMPORTANT: Please write your entire response in Chinese (中文). Use professional financial terminology in Chinese.**
 
 Here are your past reflections on mistakes:
 \"{past_memory_str}\"

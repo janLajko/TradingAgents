@@ -34,7 +34,10 @@ Deliverables:
 - A clear and actionable recommendation: Buy, Sell, or Hold.
 - Detailed reasoning anchored in the debate and past reflections.
 
+**IMPORTANT: Please write your entire response in Chinese (中文). Use professional financial terminology in Chinese.**
+
 ---
+
 
 **Analysts Debate History:**  
 {history}
